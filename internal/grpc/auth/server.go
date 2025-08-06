@@ -2,18 +2,15 @@ package auth
 
 import (
 	"context"
+	"errors"
 
+	"github.com/choipopik/gRPC-SSO/internal/services/auth"
+	"github.com/choipopik/gRPC-SSO/internal/storage"
 	ssov1 "github.com/choipopik/protos/gen/go/sso"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-// type Auth interface {
-// 	Login(ctx context.Context, email, passowrd string, appID int) (token string, err error)
-// 	Register(ctx context.Context, email string, password string) (userID int64, err error)
-// 	IsAdmin(ctx context.Context, userID int64) (bool, error)
-// }
 
 type serverAPI struct {
 	ssov1.UnimplementedAuthServer
@@ -37,10 +34,11 @@ func (s *serverAPI) Login(ctx context.Context, req *ssov1.LoginRequest) (*ssov1.
 		return nil, err
 	}
 
-	//TODO: Auth service
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
 	if err != nil {
-		//
+		if errors.Is(err, auth.ErrInvalidCreds) {
+			return nil, status.Error(codes.InvalidArgument, "credentials error")
+		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -56,7 +54,9 @@ func (s *serverAPI) RegisterUser(ctx context.Context, req *ssov1.RegisterRequest
 
 	userId, err := s.auth.RegisterUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
-		//
+		if errors.Is(err, auth.ErrUserExists) {
+			return nil, status.Error(codes.InvalidArgument, "users exist")
+		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -72,7 +72,9 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *ssov1.IsAdminRequest) (*ss
 
 	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
 	if err != nil {
-		//
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return nil, status.Error(codes.InvalidArgument, "user not found")
+		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 

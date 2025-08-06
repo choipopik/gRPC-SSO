@@ -16,6 +16,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/ilyakaznacheev/cleanenv v1.5.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/mattn/go-sqlite3 v1.14.30 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
